@@ -7,6 +7,7 @@ use log::{debug, error, info, warn};
 use rog_platform::asus_armoury::{
     AttrValue, Attribute, FirmwareAttribute, FirmwareAttributeType, FirmwareAttributes,
 };
+use rog_platform::gpu_pci::{asus_dgpu_disabled, asus_gpu_mux_discreet, asus_gpu_mux_exists};
 use rog_platform::platform::{PlatformProfile, RogPlatform};
 use rog_platform::power::AsusPower;
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,7 @@ use zbus::object_server::SignalEmitter;
 use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Type, Value};
 use zbus::{Connection, fdo, interface};
 
+use crate::boot_cmdline;
 use crate::config::Config;
 use crate::error::RogError;
 use crate::{ASUS_ZBUS_PATH, Reloadable};
@@ -476,10 +478,12 @@ impl AsusArmouryAttribute {
                 if self.attr.current_value().ok() == Some(AttrValue::Integer(value)) {
                     info!("GPU attribute {name} is already {value}, clearing any deferred queue");
                     self.queued_gpu.lock().await.remove(&self.name());
+                    self.sync_boot_args().await;
                     return Ok(());
                 }
                 debug!("Queueing GPU attribute {name} = {value} for delayed apply");
                 self.queued_gpu.lock().await.insert(self.name(), value);
+                self.sync_boot_args().await;
                 return Ok(());
             }
             FirmwareAttributeType::Norestore => {
@@ -593,8 +597,64 @@ impl AsusArmouryAttribute {
         if queue.get(&name).copied() == Some(value) {
             queue.remove(&name);
         }
+        // Intentionally no `sync_boot_args` here: the kernel command line was
+        // already aligned when the value was queued, and the firmware only
+        // applies the write on the next boot, so re-deriving it from sysfs at
+        // shutdown could flip the parameter back to the old mode.
 
         Ok(true)
+    }
+
+    /// Keep `acpi_backlight=native` in sync with the GPU mode.
+    ///
+    /// In discrete ("Ultimate") mode the panel is driven by the dGPU and only
+    /// the NVIDIA backlight handler can change its brightness, which requires
+    /// the parameter; in hybrid/integrated mode the EC backlight is the working
+    /// device and the parameter has to go. The value is derived from the queued
+    /// (i.e. next boot) state when available, and from the firmware otherwise,
+    /// so the kernel command line matches the mode the machine boots into.
+    /// See [`crate::boot_cmdline`] for the details.
+    async fn sync_boot_args(&self) {
+        if self.name().property_type() != FirmwareAttributeType::Gpu {
+            return;
+        }
+        if !asus_gpu_mux_exists() {
+            // No MUX switch, the panel never moves to the dGPU.
+            return;
+        }
+
+        let (queued_dgpu, queued_mux) = {
+            let queue = self.queued_gpu.lock().await;
+            (
+                queue.get(&FirmwareAttribute::DgpuDisable).copied(),
+                queue.get(&FirmwareAttribute::GpuMuxMode).copied(),
+            )
+        };
+        let dgpu_disabled = queued_dgpu
+            .map(|value| value != 0)
+            .or_else(|| asus_dgpu_disabled().ok());
+        let mux_discreet = queued_mux
+            .map(|value| value == 0)
+            .or_else(|| asus_gpu_mux_discreet().ok());
+
+        let (Some(dgpu_disabled), Some(mux_discreet)) = (dgpu_disabled, mux_discreet) else {
+            warn!("boot_cmdline: could not determine the GPU mode, kernel command line untouched");
+            return;
+        };
+
+        let wanted = boot_cmdline::wanted_native(dgpu_disabled, mux_discreet);
+        // This runs on zbus' own executor thread, which is not a Tokio runtime,
+        // so `tokio::task::spawn_blocking` would panic here. The request is a
+        // small file write plus a non-blocking `systemctl start`, so hand it to
+        // a plain thread to keep the D-Bus object responsive.
+        let _ = std::thread::spawn(move || match boot_cmdline::request(wanted) {
+            Ok(true) => info!(
+                "boot_cmdline: requested acpi_backlight=native={wanted} for \
+                 dgpu_disable={dgpu_disabled}, mux_discreet={mux_discreet}"
+            ),
+            Ok(false) => debug!("boot_cmdline: request unchanged"),
+            Err(e) => warn!("boot_cmdline: could not record the request: {e}"),
+        });
     }
 }
 

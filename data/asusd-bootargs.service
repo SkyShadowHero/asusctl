@@ -1,0 +1,14 @@
+[Unit]
+Description=Apply the GPU-mode kernel arguments requested by asusd
+Documentation=man:asusd(8)
+After=local-fs.target
+ConditionPathExists=/etc/asusd/gpu_bootargs
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/asusd/boot-args.sh
+# Regenerating the boot loader entries needs full access to /etc and the ESP,
+# which asusd itself deliberately does not have.
+# limine-update rebuilds the initramfs for every installed kernel, which easily
+# exceeds the default 90s oneshot start timeout.
+TimeoutStartSec=600

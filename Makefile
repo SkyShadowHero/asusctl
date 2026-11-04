@@ -128,6 +128,8 @@ install-data-asusd:
 
 	$(INSTALL_DATA) "./data/$(BIN_D).service" "$(DESTDIR)$(libdir)/systemd/system/$(BIN_D).service"
 	$(INSTALL_DATA) "./data/$(BIN_S).service" "$(DESTDIR)$(libdir)/systemd/system/$(BIN_S).service"
+	$(INSTALL_DATA) "./data/$(BIN_D)-bootargs.service" "$(DESTDIR)$(libdir)/systemd/system/$(BIN_D)-bootargs.service"
+	$(INSTALL) -D -m 0755 "./data/boot-args.sh" "$(DESTDIR)$(libdir)/$(BIN_D)/boot-args.sh"
 
 	cd rog-anime/data && find "./anime" -type f -exec $(INSTALL_DATA) "{}" "$(DESTDIR_REALPATH)$(datarootdir)/asusd/{}" \;
 
@@ -155,6 +157,8 @@ uninstall:
 	rm -f "$(DESTDIR)$(datarootdir)/dbus-1/system.d/$(BIN_D).conf"
 	rm -f "$(DESTDIR)$(libdir)/systemd/system/$(BIN_D).service"
 	rm -f "$(DESTDIR)$(libdir)/systemd/system/$(BIN_S).service"
+	rm -f "$(DESTDIR)$(libdir)/systemd/system/$(BIN_D)-bootargs.service"
+	rm -rf "$(DESTDIR)$(libdir)/$(BIN_D)"
 	rm -f "$(DESTDIR)$(datarootdir)/icons/hicolor/512x512/apps/asus_notif_yellow.png"
 	rm -f "$(DESTDIR)$(datarootdir)/icons/hicolor/512x512/apps/asus_notif_green.png"
 	rm -f "$(DESTDIR)$(datarootdir)/icons/hicolor/512x512/apps/asus_notif_blue.png"

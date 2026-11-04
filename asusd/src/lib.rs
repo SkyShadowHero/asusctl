@@ -15,6 +15,8 @@ pub mod aura_manager;
 pub mod aura_scsi;
 pub mod aura_slash;
 pub mod aura_types;
+/// Keep the kernel command line in sync with the GPU MUX mode
+pub mod boot_cmdline;
 pub mod error;
 
 use std::future::Future;

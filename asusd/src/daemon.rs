@@ -96,6 +96,18 @@ async fn start_daemon() -> Result<(), Box<dyn Error>> {
         }
     };
 
+    // The working backlight device depends on the GPU MUX mode, so the kernel
+    // command line has to follow it. Align it on start-up in case the mode was
+    // changed outside of this daemon (BIOS set-up, fresh install, ...).
+    match tokio::task::spawn_blocking(asusd::boot_cmdline::sync_from_hardware).await {
+        Ok(Ok(Some(true))) => {
+            info!("boot_cmdline: boot argument request updated for the current GPU mode");
+        }
+        Ok(Ok(_)) => {}
+        Ok(Err(e)) => warn!("boot_cmdline: could not sync the kernel command line: {e}"),
+        Err(e) => warn!("boot_cmdline: sync task failed: {e}"),
+    }
+
     let fan_curve_config = match CtrlFanCurveZbus::new() {
         Ok(mut ctrl) => {
             info!("FanCurves: found supported fancurves");
