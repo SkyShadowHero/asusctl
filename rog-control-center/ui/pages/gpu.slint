@@ -1,5 +1,5 @@
-import { Palette, TabWidget, Button, CheckBox, ScrollView } from "std-widgets.slint";
-import { Graph, Node } from "../widgets/graph.slint";
+import { FluentTheme } from "../fluent/theme.slint";
+import { TabWidget, Button, CheckBox, ScrollView } from "std-widgets.slint";import { Graph, Node } from "../widgets/graph.slint";
 import { SystemToggle, SystemDropdown } from "../widgets/common.slint";
 import { Profile, FanType, FanPageData } from "../types/fan_types.slint";
 
@@ -32,18 +32,18 @@ export component PageGPU inherits Rectangle {
 
     ScrollView {
         VerticalLayout {
-            padding: 12px;
+            padding: FluentTheme.space-page;
             spacing: 8px;
 
             Rectangle {
-                background: Palette.alternate-background;
-                border-color: Palette.border;
+                background: FluentTheme.layer-card;
+                border-color: FluentTheme.stroke-card;
                 border-width: 1px;
-                border-radius: 2px;
+                border-radius: FluentTheme.radius-card;
                 height: 36px;
                 Text {
                     font-size: 16px;
-                    color: Palette.control-foreground;
+                    color: FluentTheme.text-primary;
                     horizontal-alignment: TextHorizontalAlignment.center;
                     text: @tr("Internal/Discrete GPU");
                 }

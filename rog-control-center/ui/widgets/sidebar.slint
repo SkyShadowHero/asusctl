@@ -1,58 +1,116 @@
 // Copyright © SixtyFPS GmbH <info@slint.dev>
 // SPDX-License-Identifier: MIT
+//
+// WinUI 3 NavigationView-style sidebar.
+// Keeps the upstream `gap-below` height fix (8fe49f13) and the explicit
+// TouchArea y:0 fix, but replaces the full-bleed selection rectangle with a
+// rounded state layer plus a single shared accent indicator pill.
+//
+// The pill is owned by SideBar (not by each item) so switching selection
+// animates one element travelling to the new row. Each selected row reports
+// its centre using pure layout coordinates: `navigation.y + self.y`.
+//
+// Do NOT use `absolute-position` here. For a repeater item Slint 1.17 emits
+// `map_to_window(item).y + item.y`, but map_to_window already includes the
+// item's own y, so the row offset is counted twice -- the pill drifts further
+// down the lower the selected row. The layout cache writes the row y straight
+// into `self.y`, which is exact and needs no coordinate conversion.
 
-import { Palette, VerticalBox } from "std-widgets.slint";
+import { VerticalBox } from "std-widgets.slint";
+import { FluentTheme } from "../fluent/theme.slint";
+import { FluentStateLayer, FluentNavIndicator } from "../fluent/components.slint";
 
 component SideBarItem inherits Rectangle {
     in property <bool> selected;
     in property <bool> has-focus;
     in property <length> gap-below: 2px;
     in-out property <string> text <=> label.text;
-    callback clicked <=> touch.clicked;
-    min-height: self.visible ? l.preferred-height + root.gap-below : 0px;
-    // min-width: self.visible ? l.preferred-width + 10px : 0px;
-    states [
-        pressed when touch.pressed: {
-            state.opacity: 0.8;
-        }
-        hover when touch.has-hover: {
-            state.opacity: 0.6;
-        }
-        selected when root.selected: {
-            state.opacity: 1;
-        }
-        focused when root.has-focus: {
-            state.opacity: 0.8;
-        }
-    ]
+    callback clicked <=> state-layer.clicked;
 
-    state := Rectangle {
-        opacity: 0;
-        background: Palette.selection-background;
-        animate opacity { duration: 150ms; }
-        y: 0px;
-        height: max(0px, parent.height - root.gap-below);
+    // `navigation.y` relative to SideBar, and `self.y` relative to navigation.
+    // Both are layout coordinates, so their sum is sidebar-local.
+    in property <length> navigation-y;
+    in property <int> layout-sync;
+    callback report-center(length);
+
+    function report() {
+        // Report the CENTRE of the row. Row height is fixed:
+        // body.height = parent.height - gap-below
+        // = (size-control-height + 8px + gap-below) - gap-below, so half of it
+        // is a constant. Do NOT use self.height here: before the first layout
+        // pass a Rectangle's height is 100% of its parent, which would place
+        // the pill ~2 rows too low.
+        root.report-center(
+            root.navigation-y + self.y
+            + (FluentTheme.size-control-height + 8px) / 2
+        );
     }
 
-    l := HorizontalLayout {
-        x: 4px;
-        y: (max(0px, parent.height - root.gap-below) - self.height) / 2;
-        padding-left: 8px;
-        padding-right: 8px;
-        padding-top: 6px;
-        padding-bottom: 6px;
-        spacing: 0px;
+    // `changed selected` covers clicks and keyboard navigation.
+    changed selected => {
+        if root.selected {
+            root.report();
+        }
+    }
+    // `self.y` comes from the layout cache and is only meaningful after the
+    // first layout pass. Re-report whenever layout geometry settles, plus
+    // once from the sidebar's first-frame timer as a fallback. Reports before
+    // that are discarded by the `indicator-ready` guard in the parent.
+    changed y => {
+        if root.selected {
+            root.report();
+        }
+    }
+    changed height => {
+        if root.selected {
+            root.report();
+        }
+    }
+    changed layout-sync => {
+        if root.selected {
+            root.report();
+        }
+    }
+
+    // Upstream fix: hidden items must contribute zero height, and the item's
+    // touch target must not overlap the gap below it.
+    min-height: self.visible ? FluentTheme.size-control-height + 8px + root.gap-below : 0px;
+
+    body := Rectangle {
+        x: FluentTheme.space-item;
+        y: 0px;
+        width: parent.width - 2 * FluentTheme.space-item;
+        height: max(0px, parent.height - root.gap-below);
+        border-radius: FluentTheme.radius-control;
+
         label := Text {
-            color: Palette.foreground;
-            vertical-alignment: center;
-            font-size: 14px;
+            x: FluentTheme.space-card;
+            y: 0px;
+            width: parent.width - FluentTheme.space-card - FluentTheme.space-item;
+            height: 100%;
+            color: root.selected ? FluentTheme.text-primary : FluentTheme.text-secondary;
+            font-size: FluentTheme.font-body;
+            font-weight: root.selected ? FluentTheme.weight-strong : FluentTheme.weight-body;
+            vertical-alignment: TextVerticalAlignment.center;
         }
-    }
 
-    touch := TouchArea {
-        y: 0px;
-        width: 100%;
-        height: max(0px, parent.height - root.gap-below);
+        // Keyboard focus ring, matching WinUI focus visuals.
+        if root.has-focus: Rectangle {
+            x: 0px;
+            y: 0px;
+            width: 100%;
+            height: 100%;
+            border-radius: FluentTheme.radius-control;
+            border-width: 2px;
+            border-color: FluentTheme.stroke-focus;
+        }
+
+        state-layer := FluentStateLayer {
+            x: 0px;
+            y: 0px;
+            selected: root.selected;
+            layer-radius: FluentTheme.radius-control;
+        }
     }
 }
 
@@ -63,13 +121,74 @@ export component SideBar inherits Rectangle {
     out property <int> current-item: 0;
     out property <int> current-focused: fs.has-focus ? fs.focused-tab : -1;
 
-    // The currently focused tab
-    width: 180px;
+    // Shared travelling indicator. `indicator-center` is the CENTRE of the
+    // selected row (not the pill's top edge), written by whichever row is
+    // selected. FluentNavIndicator anchors itself on this value so the pill
+    // expands symmetrically up and down.
+    // The initial binding points at the first row so the pill is already in
+    // place before the first layout pass -- no drop-in from y = 0.
+    in-out property <length> indicator-center: navigation.y
+        + (FluentTheme.size-control-height + 8px) / 2;
+    in-out property <length> indicator-height: FluentTheme.size-indicator-height;
+    // Manual vertical calibration. Set this if the pill ever needs nudging
+    // relative to a row (e.g. after adding a title bar above the sidebar).
+    in-out property <length> indicator-offset: 0px;
+    in-out property <bool> indicator-ready: false;
+    in-out property <int> layout-sync: 0;
+    out property <bool> indicator-active: root.current-item >= 0
+        && root.current-item < root.available.length
+        && root.available[root.current-item];
+
+    // Re-report once the layout has settled. Also gates the initial fade-in,
+    // so a stale position can never be seen. Set `ready` BEFORE bumping the
+    // sync counter: the item's `changed layout-sync` reads it in the same pass.
+    sync := Timer {
+        interval: 16ms;
+        running: true;
+        triggered => {
+            root.indicator-ready = true;
+            root.layout-sync += 1;
+            self.running = false;
+        }
+    }
+
+    // On a selection change the pill only shortens a little, slides to the new
+    // row's centre, then grows back symmetrically in BOTH directions. It never
+    // collapses to a dot -- the motion must read as one element moving, not as
+    // an element vanishing and a new one appearing. The expand timer fires
+    // near the end of the 250ms travel so the two phases read as one motion.
+    expand := Timer {
+        interval: 200ms;
+        running: false;
+        triggered => {
+            root.indicator-height = FluentTheme.size-indicator-height;
+            self.running = false;
+        }
+    }
+
+    changed current-item => {
+        root.indicator-height = FluentTheme.size-indicator-compact;
+        expand.running = true;
+    }
+
+    width: FluentTheme.size-sidebar-width;
+    background: FluentTheme.layer-mica;
     forward-focus: fs;
     accessible-role: tab;
     accessible-delegate-focus: root.current-focused >= 0 ? root.current-focused : root.current-item;
+
+    // NavigationView has a hairline divider on its trailing edge.
     Rectangle {
-        background: Palette.alternate-background;
+        x: parent.width - 1px;
+        y: 0px;
+        width: 1px;
+        height: 100%;
+        background: FluentTheme.stroke-divider;
+    }
+
+    Rectangle {
+        width: 100%;
+        height: 100%;
         fs := FocusScope {
             key-pressed(event) => {
                 if (event.text == "\n") {
@@ -77,7 +196,7 @@ export component SideBar inherits Rectangle {
                     return accept;
                 }
                 if (event.text == Key.UpArrow) {
-                    self.focused-tab = Math.max(self.focused-tab - 1,  0);
+                    self.focused-tab = Math.max(self.focused-tab - 1, 0);
                     return accept;
                 }
                 if (event.text == Key.DownArrow) {
@@ -94,8 +213,9 @@ export component SideBar inherits Rectangle {
                 return reject;
             }
             property <int> focused-tab: 0;
-            x: 0;
-            width: 0;
+            x: 0px;
+            y: 0px;
+            width: 0px;
             // Do not react on clicks
         }
     }
@@ -106,7 +226,7 @@ export component SideBar inherits Rectangle {
         alignment: start;
 
         Image {
-            height: 100px;
+            height: 88px;
             // TODO: change if TUF on the logo in the menu on the main page
             // If running on a TUF model, replace the ROG red with TUF orange
             // (add data/tuf-control-center.png and switch here when available)
@@ -117,7 +237,7 @@ export component SideBar inherits Rectangle {
 
         Rectangle {
             height: 1px;
-            background: Palette.border;
+            background: FluentTheme.stroke-divider;
         }
 
         navigation := VerticalLayout {
@@ -132,16 +252,36 @@ export component SideBar inherits Rectangle {
                 has-focus: index == root.current-focused;
                 text: item;
                 selected: index == root.current-item;
+                navigation-y: navigation.y;
+                layout-sync: root.layout-sync;
+                report-center(y) => {
+                    // Ignore reports fired before the first layout pass, when
+                    // self.y is still zero. The initial binding on
+                    // indicator-center already points at the first row.
+                    if root.indicator-ready {
+                        root.indicator-center = y;
+                    }
+                }
             }
         }
 
         VerticalLayout {
             bottom := VerticalBox {
-                padding-left: 0px;
-                padding-top: 0px;
-                padding-bottom: 0px;
+                padding-left: FluentTheme.space-item;
+                padding-right: FluentTheme.space-item;
+                padding-top: FluentTheme.space-item;
+                padding-bottom: FluentTheme.space-card;
                 @children
             }
         }
+    }
+
+    // Last child so the pill sits above the rows' state layers, exactly where
+    // WinUI draws its selection indicator on the leading edge.
+    FluentNavIndicator {
+        x: FluentTheme.space-item;
+        y: root.indicator-center + root.indicator-offset;
+        pill-height: root.indicator-height;
+        active: root.indicator-active && root.indicator-ready;
     }
 }

@@ -1,0 +1,191 @@
+// Reusable WinUI 3 building blocks. These sit on top of Slint's built-in
+// fluent std-widgets and are meant for the custom Rectangle-based parts of
+// the UI (sidebar, setting rows, flyouts, info bars).
+//
+// Design rule: state is expressed as a translucent overlay layer, never by
+// tinting the base colour. That keeps hover/pressed/disabled independent of
+// the surface underneath, which is how WinUI's VisualStateManager behaves.
+
+import { FluentTheme } from "theme.slint";
+
+// A WinUI Settings-style card. Use as the container for one or more rows.
+export component FluentCard inherits Rectangle {
+    in property <bool> elevated: false;
+    in property <length> card-radius: FluentTheme.radius-card;
+
+    background: FluentTheme.layer-card;
+    border-radius: root.card-radius;
+    border-width: 1px;
+    border-color: FluentTheme.stroke-card;
+
+    drop-shadow-blur: root.elevated ? FluentTheme.shadow-blur : 0px;
+    drop-shadow-color: FluentTheme.shadow-card;
+    drop-shadow-offset-y: root.elevated ? FluentTheme.shadow-offset-y : 0px;
+
+    @children
+}
+
+// Translucent interaction overlay. Place it as the last child of an item so
+// it sits above the content, and bind `clicked` for the action.
+export component FluentStateLayer inherits Rectangle {
+    in property <bool> enabled: true;
+    in property <bool> selected: false;
+    in property <length> layer-radius: FluentTheme.radius-control;
+
+    callback clicked <=> touch.clicked;
+    out property <bool> hovered: touch.has-hover;
+    out property <bool> pressed: touch.pressed;
+
+    border-radius: root.layer-radius;
+    background: !root.enabled ? FluentTheme.state-disabled
+        : root.selected ? FluentTheme.state-selected
+        : touch.pressed ? FluentTheme.state-pressed
+        : touch.has-hover ? FluentTheme.state-hover
+        : transparent;
+
+    // Literal duration: Slint requires a constant here, kept in sync with
+    // FluentTheme.duration-normal (150ms, same as the built-in fluent Button).
+    animate background { duration: 150ms; }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+// Section heading used above a group of cards.
+export component FluentSectionHeader inherits Text {
+    color: FluentTheme.text-primary;
+    font-size: FluentTheme.font-section;
+    font-weight: FluentTheme.weight-strong;
+    vertical-alignment: TextVerticalAlignment.center;
+}
+
+// Secondary / explanatory text under a setting.
+export component FluentCaption inherits Text {
+    color: FluentTheme.text-secondary;
+    font-size: FluentTheme.font-caption;
+    font-weight: FluentTheme.weight-body;
+    wrap: TextWrap.word-wrap;
+    vertical-alignment: TextVerticalAlignment.center;
+}
+
+// The 3px accent pill on the left edge of the selected NavigationView item.
+//
+// There is exactly ONE of these per sidebar, owned by SideBar itself. The
+// parent binds `y` to the selected row's centre, so a selection change slides
+// the same pill to its new position (WinUI NavigationView behaviour) instead
+// of fading one pill out and fading another one in.
+export component FluentNavIndicator inherits Rectangle {
+    in property <length> pill-height: FluentTheme.size-indicator-height;
+    in property <bool> active: true;
+
+    // This outer element is a zero-height ANCHOR: its y is the CENTRE of the
+    // selected row, not the top of the pill. Keeping the pill in a child lets
+    // it grow symmetrically up and down while the anchor travels.
+    width: FluentTheme.size-indicator-width;
+    height: 0px;
+    opacity: root.active ? 1 : 0;
+
+    // WinUI PointToPointEasing = cubic-bezier(0.55, 0.55, 0, 1), documented as
+    // "transitions that keep the same element on screen going from one place
+    // to another". 250ms sits between Slint's 150ms control feedback and
+    // WinUI's 333ms content transitions, matching FluentTheme.duration-slow.
+    animate y { duration: 250ms; easing: cubic-bezier(0.55, 0.55, 0, 1); }
+    animate opacity { duration: 150ms; }
+
+    // NOTE: inside a component, `self` refers to the component ROOT (whose
+    // height is 0 here), not to this child. Use the explicit `root.pill-height`
+    // instead -- `self.height` would fold to the constant 0 and be optimised
+    // away, leaving the pill top-aligned (growing downward only).
+    Rectangle {
+        x: 0px;
+        // Negative half-height keeps the pill centred on the anchor for ANY
+        // height, so contracting / expanding happens on BOTH ends at once.
+        y: -root.pill-height / 2;
+        width: FluentTheme.size-indicator-width;
+        height: root.pill-height;
+        border-radius: FluentTheme.size-indicator-width / 2;
+        background: FluentTheme.accent-default;
+
+        // y and height MUST share the same spec: their animated values stay
+        // in lockstep, so the pill's centre never drifts during the unfold.
+        animate y { duration: 150ms; easing: ease-out; }
+        animate height { duration: 150ms; easing: ease-out; }
+    }
+}
+
+// WinUI InfoBar. Replaces the old full-width solid-colour toast.
+export component FluentInfoBar inherits Rectangle {
+    in property <string> message;
+    in property <brush> severity: FluentTheme.status-info;
+
+    callback dismissed();
+
+    height: FluentTheme.size-item-height;
+    background: FluentTheme.layer-flyout;
+    border-radius: FluentTheme.radius-control;
+    border-width: 1px;
+    border-color: FluentTheme.stroke-card;
+    drop-shadow-blur: FluentTheme.shadow-blur;
+    drop-shadow-color: FluentTheme.shadow-card;
+    drop-shadow-offset-y: FluentTheme.shadow-offset-y;
+    clip: true;
+
+    HorizontalLayout {
+        padding: 0px;
+        spacing: FluentTheme.space-card;
+
+        // WinUI InfoBar colour bar on the leading edge.
+        Rectangle {
+            width: 4px;
+            height: 100%;
+            background: root.severity;
+        }
+
+        Text {
+            text: root.message;
+            color: FluentTheme.text-primary;
+            font-size: FluentTheme.font-body;
+            font-weight: FluentTheme.weight-body;
+            vertical-alignment: TextVerticalAlignment.center;
+            horizontal-alignment: TextHorizontalAlignment.left;
+        }
+    }
+
+    // The whole bar is dismissible, matching the previous toast behaviour.
+    TouchArea {
+        width: 100%;
+        height: 100%;
+        clicked => { root.dismissed(); }
+    }
+}
+
+// A flat navigation/action button (used for the sidebar "Quit App" action).
+export component FluentTextButton inherits Rectangle {
+    in property <string> label;
+    in property <bool> enabled: true;
+    in property <length> button-radius: FluentTheme.radius-control;
+    callback clicked;
+
+    height: FluentTheme.size-control-height + 4px;
+    border-radius: root.button-radius;
+
+    Text {
+        x: FluentTheme.space-card;
+        width: parent.width - 2 * FluentTheme.space-card;
+        height: 100%;
+        text: root.label;
+        color: root.enabled ? FluentTheme.text-primary : FluentTheme.text-disabled;
+        font-size: FluentTheme.font-body;
+        font-weight: FluentTheme.weight-body;
+        vertical-alignment: TextVerticalAlignment.center;
+    }
+
+    FluentStateLayer {
+        enabled: root.enabled;
+        layer-radius: root.button-radius;
+        clicked => { root.clicked(); }
+    }
+}

@@ -1,4 +1,6 @@
-import { Palette, Button, VerticalBox } from "std-widgets.slint";
+import { VerticalBox } from "std-widgets.slint";
+import { FluentTheme } from "fluent/theme.slint";
+import { FluentTextButton, FluentInfoBar, FluentCard } from "fluent/components.slint";
 import { AppSize } from "globals.slint";
 import { PageSystem, SystemPageData, AttrMinMax } from "pages/system.slint";
 import { SideBar } from "widgets/sidebar.slint";
@@ -19,13 +21,17 @@ export { AuraPageData, AuraDevType, LaptopAuraPower, AuraPowerState, PowerZones,
 import { PageAppSettings, AppSettingsPageData, GlobalShortcutStatus } from "pages/app_settings.slint";
 
 export { AppSize, AttrMinMax, SystemPageData, AnimePageData, SlashPageData, AppSettingsPageData, GlobalShortcutStatus, GPUPageData }
+// Exported so a future in-app theme switch can override FluentTheme.dark.
+// By default the theme follows the OS colour scheme.
+export { FluentTheme }
 
 export component MainWindow inherits Window {
     title: "ROG Control";
     always-on-top: true;
+    // "Segoe UI Variable" is the WinUI font; on Linux we fall back to Noto Sans.
     default-font-family: "Noto Sans";
-    default-font-size: 14px;
-    default-font-weight: 400;
+    default-font-size: FluentTheme.font-body;
+    default-font-weight: FluentTheme.weight-body;
     icon: @image-url("../data/rog-control-center.png");
     in property <[bool]> sidebar_items_avilable: [
         true,
@@ -43,7 +49,7 @@ export component MainWindow inherits Window {
     in property <bool> is_tuf: false;
     private property <bool> fade_cover;
     private property <bool> toast: false;
-    private property <string> toast_text: "I show when something is waiting";
+    private property <string> toast_text: @tr("I show when something is waiting");
     callback show_toast(string);
     show_toast(text) => {
         toast = text != "";
@@ -69,7 +75,7 @@ export component MainWindow inherits Window {
     }
     min-height: AppSize.height;
     min-width: AppSize.width;
-    background: Palette.alternate-background;
+    background: FluentTheme.layer-window-mica;
 
     HorizontalLayout {
         padding: 0px;
@@ -91,18 +97,18 @@ export component MainWindow inherits Window {
                 is_tuf: root.is_tuf;
             }
 
-            Button {
-                height: 40px;
-                width: side-bar.width;
-                text: @tr("Quit App");
-                clicked() => {
+            FluentTextButton {
+                width: side-bar.width - 2 * FluentTheme.space-item;
+                label: @tr("Quit App");
+                clicked => {
                     root.exit-app();
                 }
             }
         }
 
         Rectangle {
-            background: Palette.background;
+            // Transparent so the window's Mica sheen shows through the pages.
+            background: transparent;
             if(side-bar.current-item == 0): page := PageSystem {
                 width: root.width - side-bar.width;
                 height: root.height;
@@ -156,30 +162,14 @@ export component MainWindow inherits Window {
                 visible: side-bar.current-item == 8;
             }
 
-            if toast: Rectangle {
-                x: 0px;
-                y: root.height - self.height;
-                width: root.width - side-bar.width;
-                height: 40px;
-                opacity: 1.0;
-                background: Palette.selection-background;
-                clip: true;
-                TouchArea {
-                    height: 100%;
-                    width: 100%;
-                    clicked => {
-                        toast = false;
-                    }
-                }
-
-                Rectangle {
-                    height: 100%;
-                    width: 100%;
-                    background: Palette.control-background;
-                    Text {
-                        color: Palette.control-foreground;
-                        text: root.toast_text;
-                    }
+            // WinUI InfoBar instead of the old full-bleed accent strip.
+            if toast: FluentInfoBar {
+                x: FluentTheme.space-page;
+                y: root.height - self.height - FluentTheme.space-page;
+                width: root.width - side-bar.width - 2 * FluentTheme.space-page;
+                message: root.toast_text;
+                dismissed => {
+                    toast = false;
                 }
             }
         }
@@ -190,7 +180,7 @@ export component MainWindow inherits Window {
         y: 0px;
         width: root.width;
         height: root.height;
-        background: Colors.rgba(25,33,23,20);
+        background: #00000080;
         opacity: 0.7;
         TouchArea {
             height: 100%;
@@ -225,9 +215,14 @@ export component MainWindow inherits Window {
         Rectangle {
             height: 100%;
             width: 100%;
-            background: Palette.background;
+            background: FluentTheme.layer-flyout;
+            border-radius: FluentTheme.radius-card;
+            border-width: 1px;
+            border-color: FluentTheme.stroke-card;
             Text {
-                text: "Click here to exit";
+                text: @tr("Click here to exit");
+                color: FluentTheme.text-primary;
+                font-size: FluentTheme.font-body;
             }
         }
     }
@@ -237,10 +232,10 @@ export component MainWindow inherits Window {
         y: 0px;
         width: root.width;
         height: root.height;
-        background: Palette.background;
-        border-color: Palette.border;
-        border-width: 3px;
-        border-radius: 10px;
+        background: FluentTheme.layer-window-mica;
+        border-color: FluentTheme.stroke-card;
+        border-width: 1px;
+        border-radius: FluentTheme.radius-overlay;
 
         VerticalBox {
             RogItem {
@@ -248,12 +243,16 @@ export component MainWindow inherits Window {
                 max-height: 100px;
                 Text {
                     text <=> SomeError.error_message;
-                    font-size: 18px;
+                    color: FluentTheme.text-primary;
+                    font-size: FluentTheme.font-section;
+                    font-weight: FluentTheme.weight-strong;
                 }
             }
 
             Text {
                 text <=> SomeError.error_help;
+                color: FluentTheme.text-secondary;
+                font-size: FluentTheme.font-body;
                 horizontal-alignment: TextHorizontalAlignment.center;
                 vertical-alignment: TextVerticalAlignment.center;
             }

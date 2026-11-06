@@ -1,5 +1,5 @@
-import { Palette, VerticalBox, ScrollView } from "std-widgets.slint";
-import { SystemDropdown, SystemSlider, SystemToggle, RogItem } from "../widgets/common.slint";
+import { FluentTheme } from "../fluent/theme.slint";
+import { VerticalBox, ScrollView } from "std-widgets.slint";import { SystemDropdown, SystemSlider, SystemToggle, RogItem } from "../widgets/common.slint";
 
 export global SlashPageData {
     in-out property <bool> enabled: false;
@@ -34,19 +34,19 @@ export component PageSlash inherits Rectangle {
 
     ScrollView {
         VerticalLayout {
-            padding: 12px;
+            padding: FluentTheme.space-page;
             spacing: 8px;
             alignment: LayoutAlignment.start;
 
             Rectangle {
-                background: Palette.alternate-background;
-                border-color: Palette.border;
+                background: FluentTheme.layer-card;
+                border-color: FluentTheme.stroke-card;
                 border-width: 1px;
-                border-radius: 2px;
+                border-radius: FluentTheme.radius-card;
                 height: 36px;
                 Text {
                     font-size: 16px;
-                    color: Palette.control-foreground;
+                    color: FluentTheme.text-primary;
                     horizontal-alignment: TextHorizontalAlignment.center;
                     text: @tr("Slash lighting");
                 }
@@ -98,14 +98,14 @@ export component PageSlash inherits Rectangle {
             }
 
             Rectangle {
-                background: Palette.alternate-background;
-                border-color: Palette.border;
+                background: FluentTheme.layer-card;
+                border-color: FluentTheme.stroke-card;
                 border-width: 1px;
-                border-radius: 2px;
+                border-radius: FluentTheme.radius-card;
                 height: 36px;
                 Text {
                     font-size: 16px;
-                    color: Palette.control-foreground;
+                    color: FluentTheme.text-primary;
                     horizontal-alignment: TextHorizontalAlignment.center;
                     text: @tr("Visibility triggers");
                 }
@@ -166,7 +166,7 @@ export component PageSlash inherits Rectangle {
                     width: parent.width - 20px;
                     x: 10px;
                     wrap: TextWrap.word-wrap;
-                    color: Palette.control-foreground;
+                    color: FluentTheme.text-primary;
                     text: @tr("Slash_tip" => "Slash Lighting controls the A-cover LED strip found on supported Zephyrus models.");
                 }
             }

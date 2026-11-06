@@ -1,6 +1,6 @@
+import { FluentTheme } from "../fluent/theme.slint";
 import { SystemDropdown, SystemToggle } from "../widgets/common.slint";
-import { Palette, GroupBox, VerticalBox, Button, HorizontalBox } from "std-widgets.slint";
-
+import { GroupBox, VerticalBox, Button, HorizontalBox } from "std-widgets.slint";
 export global AnimePageData {
     in-out property <[string]> brightness_names: [
         @tr("Anime Brightness" => "Off"),
@@ -105,7 +105,7 @@ export component PageAnime inherits Rectangle {
     if root.show_fade_cover: Rectangle {
         width: 100%;
         height: 100%;
-        background: Palette.background;
+        background: FluentTheme.layer-window;
         opacity: 0.8;
         TouchArea {
             height: 100%;
@@ -128,7 +128,7 @@ export component PageAnime inherits Rectangle {
         width: 100%;
         height: 100%;
         opacity: 1;
-        background: Palette.background;
+        background: FluentTheme.layer-window;
         VerticalLayout {
             padding: 4px;
             spacing: 10px;
@@ -139,7 +139,7 @@ export component PageAnime inherits Rectangle {
                     alignment: LayoutAlignment.start;
                     Text {
                         font-size: 16px;
-                        color: Palette.control-foreground;
+                        color: FluentTheme.text-primary;
                         horizontal-alignment: TextHorizontalAlignment.center;
                         text: @tr("Set which builtin animations are played");
                     }
@@ -203,7 +203,7 @@ export component PageAnime inherits Rectangle {
         width: 100%;
         height: 100%;
         opacity: 1;
-        background: Palette.background;
+        background: FluentTheme.layer-window;
         VerticalLayout {
             padding: 4px;
             spacing: 10px;
@@ -214,7 +214,7 @@ export component PageAnime inherits Rectangle {
                     alignment: LayoutAlignment.start;
                     Text {
                         font-size: 16px;
-                        color: Palette.control-foreground;
+                        color: FluentTheme.text-primary;
                         horizontal-alignment: TextHorizontalAlignment.center;
                         text: @tr("Advanced Display Settings");
                     }

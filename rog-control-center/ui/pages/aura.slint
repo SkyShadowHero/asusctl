@@ -1,6 +1,6 @@
+import { FluentTheme } from "../fluent/theme.slint";
 import { SystemDropdown, RogItem, SystemToggle, SystemToggleVert } from "../widgets/common.slint";
-import { Palette, Button, ComboBox, VerticalBox, GroupBox } from "std-widgets.slint";
-import { StyleMetrics, Slider, HorizontalBox, TextEdit, SpinBox, LineEdit, ScrollView } from "std-widgets.slint";
+import { Button, ComboBox, VerticalBox, GroupBox } from "std-widgets.slint";import { StyleMetrics, Slider, HorizontalBox, TextEdit, SpinBox, LineEdit, ScrollView } from "std-widgets.slint";
 import { ColourSlider } from "../widgets/colour_picker.slint";
 import { AuraPageData, AuraDevType, PowerZones, LaptopAuraPower, AuraEffect } from "../types/aura_types.slint";
 import { AuraPowerGroup, AuraPowerGroupOld } from "../widgets/aura_power.slint";
@@ -192,7 +192,7 @@ export component PageAura inherits Rectangle {
         }
 
         if root.show_fade_cover: Rectangle {
-            background: Palette.background;
+            background: FluentTheme.layer-window;
             opacity: 0.8;
             TouchArea {
                 height: 100%;
@@ -202,7 +202,7 @@ export component PageAura inherits Rectangle {
     }
 
     if root.show_aura_power && AuraPageData.device_type == AuraDevType.New: Rectangle {
-        background: Palette.background;
+        background: FluentTheme.layer-window;
         width: 100%;
         height: 100%;
         opacity: 1;
@@ -246,7 +246,7 @@ export component PageAura inherits Rectangle {
     // appropriately for TUF devices. This ensures the Power Settings panel
     // reflects what the firmware reports for TUF models.
     if root.show_aura_power && AuraPageData.device_type == AuraDevType.Tuf: Rectangle {
-        background: Palette.background;
+        background: FluentTheme.layer-window;
         width: 100%;
         height: 100%;
         opacity: 1;
@@ -285,7 +285,7 @@ export component PageAura inherits Rectangle {
     }
 
     if root.show_aura_power && AuraPageData.device_type == AuraDevType.Old: Rectangle {
-        background: Palette.background;
+        background: FluentTheme.layer-window;
         width: 100%;
         height: 100%;
         opacity: 1;

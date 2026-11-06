@@ -1,0 +1,127 @@
+// Fluent 2 / WinUI 3 design tokens for ROG Control Center.
+//
+// Slint's built-in "fluent" widget style already exposes a rich WinUI palette
+// (`FluentPalette` in i-slint-compiler/widgets/fluent/styling.slint), but
+// `std-widgets.slint` only re-exports `Palette` with 11 basic colours. All the
+// custom Rectangle-based UI in this app was built on those 11 colours, which is
+// why it never looked like WinUI 3 despite `.with_style("fluent")` in build.rs.
+//
+// This file mirrors the official FluentPalette values so custom controls and
+// std-widgets controls stay visually consistent, and adds the tokens the
+// built-in palette does not expose through `Palette`: layered surfaces, card
+// strokes, subtle state layers, radii, spacing and motion.
+//
+// `dark` follows the OS colour scheme by default. It stays `in-out` so an
+// explicit in-app setting can override it later without touching any token.
+// Config.dark_mode is deliberately NOT wired in: it defaults to true and was
+// never used upstream, so binding it would force every light-theme user into
+// dark mode.
+
+import { Palette } from "std-widgets.slint";
+
+export global FluentTheme {
+    // Palette.color-scheme is two-way bound to Slint's internal FluentPalette,
+    // whose default is SlintInternal.color-scheme (the OS preference) -- see
+    // fluent/color-scheme.slint. Reading it keeps custom cards and the built-in
+    // Button/Switch/Slider on the same scheme.
+    // Never WRITE to Palette.color-scheme: that would override the OS theme.
+    in-out property <bool> dark: Palette.color-scheme == ColorScheme.dark;
+
+    // ---- Surfaces (Mica layering) -------------------------------------------
+    // The window is the Mica base; cards are layered on top of it.
+    out property <brush> layer-window: dark ? #202020 : #F3F3F3;
+    // A soft diagonal sheen approximating Mica. Real Mica samples the desktop
+    // wallpaper, which is not available on Linux; this keeps the layered feel
+    // without pretending to be a true backdrop.
+    out property <brush> layer-window-mica: dark
+        ? @linear-gradient(160deg, #2B2B35 0%, #202020 48%, #1E1E26 100%)
+        : @linear-gradient(160deg, #F8F8FC 0%, #F3F3F3 48%, #ECECF4 100%);
+    out property <brush> layer-mica: dark ? #272727 : #F9F9F9;
+    out property <brush> layer-card: dark ? #2C2C2C : #FFFFFF;
+    out property <brush> layer-card-alt: dark ? #FFFFFF0F : #FFFFFFB3;
+    out property <brush> layer-flyout: dark ? #2C2C2C : #F9F9F9;
+    out property <brush> layer-solid: dark ? #454545 : #FFFFFF;
+
+    // ---- Strokes ------------------------------------------------------------
+    out property <brush> stroke-card: dark ? #FFFFFF14 : #0000000F;
+    out property <brush> stroke-control: dark ? #FFFFFF17 : #0000001A;
+    out property <brush> stroke-divider: dark ? #FFFFFF14 : #00000014;
+    out property <brush> stroke-focus: Palette.accent-background;
+
+    // ---- Text ---------------------------------------------------------------
+    out property <brush> text-primary: dark ? #FFFFFF : #000000E6;
+    out property <brush> text-secondary: dark ? #FFFFFFC9 : #00000099;
+    out property <brush> text-tertiary: dark ? #FFFFFF8A : #00000073;
+    out property <brush> text-disabled: dark ? #FFFFFF5E : #0000005E;
+    out property <brush> text-on-accent: dark ? #000000 : #FFFFFF;
+
+    // ---- Accent -------------------------------------------------------------
+    // Reuse the built-in accent so the system accent colour (accentify) and
+    // the std-widgets Button/Slider/Switch all stay in sync.
+    out property <brush> accent-default: Palette.accent-background;
+    out property <brush> accent-selection: Palette.selection-background;
+    out property <brush> accent-subtle: dark ? #60CDFF29 : #005FB814;
+    out property <brush> accent-disabled: dark ? #FFFFFF29 : #00000038;
+
+    // ---- Interaction state layers (WinUI VisualState) ----------------------
+    // Applied as an overlay Rectangle instead of tinting the base colour, so
+    // hover/pressed/disabled are independent of the underlying surface.
+    out property <brush> state-hover: dark ? #FFFFFF0F : #0000000A;
+    out property <brush> state-pressed: dark ? #FFFFFF08 : #00000005;
+    out property <brush> state-selected: dark ? #FFFFFF12 : #0000000A;
+    out property <brush> state-disabled: transparent;
+
+    // ---- Semantic status ----------------------------------------------------
+    out property <brush> status-success: dark ? #6CCB5F : #0F7B0F;
+    out property <brush> status-warning: dark ? #FCE100 : #9D5D00;
+    out property <brush> status-error: dark ? #FF99A4 : #C42B1C;
+    out property <brush> status-info: Palette.accent-background;
+    // Translucent warning surface used by inline notice banners (not a solid
+    // fill, so body text stays readable in both schemes).
+    out property <brush> surface-warning: dark ? #FCE1001F : #FCE10033;
+
+    // ---- Geometry -----------------------------------------------------------
+    out property <length> radius-control: 4px;   // matches fluent Button
+    out property <length> radius-card: 8px;      // WinUI Settings card
+    out property <length> radius-flyout: 8px;
+    out property <length> radius-overlay: 12px;
+
+    out property <length> size-item-height: 48px; // WinUI setting row
+    out property <length> size-control-height: 32px;
+    out property <length> size-sidebar-width: 220px;
+    out property <length> size-indicator-width: 3px;
+    out property <length> size-indicator-height: 16px;
+    // Height while the pill is travelling between rows. It only shortens a
+    // little (16px -> 10px); collapsing to a dot reads as a "disappear and
+    // regrow" effect, which is not what the NavigationView indicator does.
+    out property <length> size-indicator-compact: 10px;
+    out property <length> size-titlebar-height: 32px;
+
+    out property <length> space-page: 24px;
+    out property <length> space-card: 16px;
+    out property <length> space-section: 12px;
+    out property <length> space-item: 8px;
+    out property <length> space-control: 6px;
+
+    // ---- Typography ---------------------------------------------------------
+    out property <length> font-caption: 12px;
+    out property <length> font-body: 14px;
+    out property <length> font-section: 16px;
+    out property <length> font-title: 28px;
+    out property <int> weight-body: 400;
+    out property <int> weight-strong: 600;
+    out property <int> weight-title: 600;
+
+    // ---- Motion -------------------------------------------------------------
+    // 150ms matches Slint's built-in fluent Button transition. WinUI's own
+    // 83/167/333ms durations are intentionally not used here: mixing them with
+    // std-widgets makes hover feedback feel out of sync.
+    out property <duration> duration-quick: 83ms;
+    out property <duration> duration-normal: 150ms;
+    out property <duration> duration-slow: 250ms;
+
+    // ---- Elevation ----------------------------------------------------------
+    out property <brush> shadow-card: dark ? #00000042 : #00000024;
+    out property <length> shadow-blur: 8px;
+    out property <length> shadow-offset-y: 2px;
+}

@@ -1,5 +1,5 @@
-import { Palette, Button } from "std-widgets.slint";
-import { SystemToggle } from "../widgets/common.slint";
+import { FluentTheme } from "../fluent/theme.slint";
+import { Button } from "std-widgets.slint";import { SystemToggle } from "../widgets/common.slint";
 
 export enum GlobalShortcutStatus {
     disabled,
@@ -107,7 +107,7 @@ export component PageAppSettings inherits VerticalLayout {
 
                 Text {
                     vertical-alignment: TextVerticalAlignment.center;
-                    color: Palette.control-foreground;
+                    color: FluentTheme.text-primary;
                     text: {
                         if AppSettingsPageData.global_shortcut_status == GlobalShortcutStatus.starting {
                             @tr("Setting up…")
@@ -138,7 +138,7 @@ export component PageAppSettings inherits VerticalLayout {
             }
 
             Text {
-                color: Palette.accent-background;
+                color: FluentTheme.accent-default;
                 text: " WIP: some features like notifications are not complete";
             }
         }

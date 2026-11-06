@@ -1,50 +1,50 @@
+import { FluentTheme } from "../fluent/theme.slint";
 import { SystemSlider, RogItem } from "../widgets/common.slint";
-import { Palette, VerticalBox, ScrollView } from "std-widgets.slint";
-import { SystemPageData } from "system.slint";
+import { VerticalBox, ScrollView } from "std-widgets.slint";import { SystemPageData } from "system.slint";
 
 export component PageBattery inherits Rectangle {
     clip: true;
 
     ScrollView {
         VerticalLayout {
-            padding: 12px;
+            padding: FluentTheme.space-page;
             spacing: 8px;
             alignment: LayoutAlignment.start;
 
             Rectangle {
-                background: Palette.alternate-background;
-                border-color: Palette.border;
+                background: FluentTheme.layer-card;
+                border-color: FluentTheme.stroke-card;
                 border-width: 1px;
-                border-radius: 2px;
+                border-radius: FluentTheme.radius-card;
                 height: 36px;
                 Text {
                     font-size: 16px;
-                    color: Palette.control-foreground;
+                    color: FluentTheme.text-primary;
                     horizontal-alignment: TextHorizontalAlignment.center;
                     text: @tr("Battery Information");
                 }
             }
 
             if SystemPageData.battery_health != -1: Rectangle {
-                background: Palette.alternate-background;
-                border-color: Palette.border;
+                background: FluentTheme.layer-card;
+                border-color: FluentTheme.stroke-card;
                 border-width: 1px;
-                border-radius: 4px;
+                border-radius: FluentTheme.radius-control;
                 
                 VerticalLayout {
-                    padding: 12px;
+                    padding: FluentTheme.space-card;
                     spacing: 8px;
                     
                     HorizontalLayout {
                         alignment: LayoutAlignment.space-between;
                         Text {
                             text: @tr("Battery Health (Capacity):");
-                            color: Palette.control-foreground;
+                            color: FluentTheme.text-primary;
                         }
                         Text {
                             text: SystemPageData.battery_health + "%";
                             font-weight: 700;
-                            color: SystemPageData.battery_health > 80 ? #22c55e : (SystemPageData.battery_health > 50 ? #eab308 : #ef4444);
+                            color: SystemPageData.battery_health > 80 ? FluentTheme.status-success : (SystemPageData.battery_health > 50 ? FluentTheme.status-warning : FluentTheme.status-error);
                         }
                     }
 
@@ -52,12 +52,12 @@ export component PageBattery inherits Rectangle {
                         alignment: LayoutAlignment.space-between;
                         Text {
                             text: @tr("Status:");
-                            color: Palette.control-foreground;
+                            color: FluentTheme.text-primary;
                         }
                         Text {
                             text: SystemPageData.battery_status;
                             font-weight: 700;
-                            color: Palette.control-foreground;
+                            color: FluentTheme.text-primary;
                         }
                     }
 
@@ -65,12 +65,12 @@ export component PageBattery inherits Rectangle {
                         alignment: LayoutAlignment.space-between;
                         Text {
                             text: @tr("Power Draw:");
-                            color: Palette.control-foreground;
+                            color: FluentTheme.text-primary;
                         }
                         Text {
                             text: Math.round(SystemPageData.battery_power_consumption * 10) / 10 + " W";
                             font-weight: 700;
-                            color: SystemPageData.battery_status == "Discharging" ? #ef4444 : #22c55e;
+                            color: SystemPageData.battery_status == "Discharging" ? FluentTheme.status-error : FluentTheme.status-success;
                         }
                     }
 
@@ -78,12 +78,12 @@ export component PageBattery inherits Rectangle {
                         alignment: LayoutAlignment.space-between;
                         Text {
                             text: SystemPageData.battery_status == "Charging" ? @tr("Time to Full:") : @tr("Time Remaining:");
-                            color: Palette.control-foreground;
+                            color: FluentTheme.text-primary;
                         }
                         Text {
                             text: SystemPageData.battery_time_estimate;
                             font-weight: 700;
-                            color: Palette.control-foreground;
+                            color: FluentTheme.text-primary;
                         }
                     }
                 }

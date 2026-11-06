@@ -1,4 +1,4 @@
-import { Palette } from "std-widgets.slint";
+import { FluentTheme } from "../fluent/theme.slint";
 
 export struct Node { x: length, y: length}
 
@@ -44,7 +44,7 @@ export component Graph inherits Rectangle {
         for n in 11: Path {
             viewbox-width: self.width / 1px;
             viewbox-height: self.height / 1px;
-            stroke: Palette.alternate-foreground.darker(200%);
+            stroke: FluentTheme.text-secondary.darker(200%);
             stroke-width: 1px;
             MoveTo {
                 x: scale_x_to_graph(n * 10px) / 1px;
@@ -60,7 +60,7 @@ export component Graph inherits Rectangle {
         }
 
         for n in 11: Text {
-            color: Palette.accent-background;
+            color: FluentTheme.accent-default;
             font-size <=> root.axis_font_size;
             text: "\{n * 10}c";
             x: scale_x_to_graph(n * 10px) - self.width / 3;
@@ -70,7 +70,7 @@ export component Graph inherits Rectangle {
         for n in 11: Path {
             viewbox-width: self.width / 1px;
             viewbox-height: self.height / 1px;
-            stroke: Palette.alternate-foreground.darker(200%);
+            stroke: FluentTheme.text-secondary.darker(200%);
             stroke-width: 1px;
             MoveTo {
                 x: 0;
@@ -86,7 +86,7 @@ export component Graph inherits Rectangle {
         }
 
         for n in 11: Text {
-            color: Palette.accent-background;
+            color: FluentTheme.accent-default;
             font-size <=> root.axis_font_size;
             text: "\{n * 10}%";
             x: - self.width;
@@ -97,7 +97,7 @@ export component Graph inherits Rectangle {
             if idx + 1 != nodes.length: Path {
                 viewbox-width: self.width / 1px;
                 viewbox-height: self.height / 1px;
-                stroke: Palette.control-foreground;
+                stroke: FluentTheme.text-primary;
                 stroke-width: 2px;
                 MoveTo {
                     x: scale_x_to_graph(nodes[idx].x) / 1px;
@@ -114,19 +114,19 @@ export component Graph inherits Rectangle {
         for n[idx] in nodes: Rectangle {
             states [
                 pressed when touch.pressed: {
-                    point.background: Palette.selection-background;
-                    tip.background: Palette.selection-background;
+                    point.background: FluentTheme.accent-subtle;
+                    tip.background: FluentTheme.accent-subtle;
                     tip.opacity: 1.0;
                 }
                 hover when touch.has-hover: {
-                    point.background: Palette.accent-background;
-                    tip.background: Palette.accent-background;
+                    point.background: FluentTheme.accent-default;
+                    tip.background: FluentTheme.accent-default;
                     tip.opacity: 1.0;
                 }
             ]
             //
             point := Rectangle {
-                background: Palette.control-foreground;
+                background: FluentTheme.text-primary;
                 x: scale_x_to_graph(n.x) - self.width / 2;
                 y: graph.height - scale_y_to_graph(n.y) - self.height / 2;
                 width: 18px;
@@ -189,9 +189,9 @@ export component Graph inherits Rectangle {
             }
 
             tip := Rectangle {
-                background: Palette.control-foreground;
+                background: FluentTheme.text-primary;
                 opacity: 0.3;
-                border-radius: 12px;
+                border-radius: FluentTheme.radius-overlay;
                 x: final_x_pos();
                 y: final_y_pos();
                 width: label.preferred-width + 14px;
@@ -225,7 +225,7 @@ export component Graph inherits Rectangle {
                 }
                 //
                 label := Text {
-                    color: Palette.accent-foreground;
+                    color: FluentTheme.text-on-accent;
                     font-size: 14px;
                     text: "\{Math.floor(n.x / 1px)}c, \{fan_pct()}%";
                 }
