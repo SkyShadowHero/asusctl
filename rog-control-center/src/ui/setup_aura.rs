@@ -7,7 +7,7 @@ use rog_dbus::zbus_aura::AuraProxy;
 use slint::{ComponentHandle, Model, RgbaColor, SharedString};
 
 use crate::config::Config;
-use crate::ui::show_toast;
+use crate::ui::{show_toast, tr};
 use crate::{
     AuraPageData, MainWindow, PowerZones as SlintPowerZones, set_ui_callbacks, set_ui_props_async,
 };
@@ -180,7 +180,7 @@ pub fn setup_aura_page(
                     let t = w.clone();
                     tokio::spawn(async move {
                         let r = pp.set_led_mode_data(raw).await;
-                        show_toast("LED mode applied".into(), "LED mode failed".into(), t, r);
+                        show_toast(tr("LED mode applied"), tr("LED mode failed"), t, r);
                     });
                 });
                 h.invoke_external_colour_change();
@@ -197,8 +197,8 @@ pub fn setup_aura_page(
                     let pw: LaptopAuraPower = power.into();
                     tokio::spawn(async move {
                         show_toast(
-                            "Aura power updated".into(),
-                            "Aura power failed".into(),
+                            tr("Aura power updated"),
+                            tr("Aura power failed"),
                             w,
                             p.set_led_power(pw).await,
                         );

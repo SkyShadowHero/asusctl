@@ -7,7 +7,7 @@ use rog_dbus::zbus_anime::AnimeProxy;
 use slint::ComponentHandle;
 
 use crate::config::Config;
-use crate::ui::show_toast;
+use crate::ui::{show_toast, tr};
 use crate::{AnimePageData, MainWindow, set_ui_callbacks, set_ui_props_async};
 
 pub fn setup_anime_page(ui: &MainWindow, _states: Arc<Mutex<Config>>) {
@@ -43,8 +43,8 @@ pub fn setup_anime_page(ui: &MainWindow, _states: Arc<Mutex<Config>>) {
                             let anime_copy = anime_copy.clone();
                             tokio::spawn(async move {
                                 show_toast(
-                                    "Anime builtin animations changed".into(),
-                                    "Failed to set Anime builtin animations".into(),
+                                    tr("Anime builtin animations changed"),
+                                    tr("Failed to set Anime builtin animations"),
                                     handle_copy,
                                     anime_copy
                                         .set_builtin_animations(Animations {

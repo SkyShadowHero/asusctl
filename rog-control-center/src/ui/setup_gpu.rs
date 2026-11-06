@@ -7,7 +7,7 @@ use rog_dbus::zbus_xgm_led::XgmLedProxy;
 use rog_platform::asus_armoury::FirmwareAttribute;
 use slint::{ComponentHandle, SharedString, Weak};
 
-use super::show_toast;
+use super::{show_toast, tr};
 use crate::zbus_proxies::find_iface_async;
 use crate::{GPUPageData, MainWindow};
 
@@ -147,8 +147,8 @@ fn set_gpu_mode(caps: Arc<GpuCaps>, handle: Weak<MainWindow>, mode: GpuMode) {
     tokio::spawn(async move {
         let result = caps.apply(mode).await;
         show_toast(
-            SharedString::from("GPU mode change scheduled — reboot required for changes to apply."),
-            SharedString::from("Failed to set GPU mode"),
+            tr("GPU mode change scheduled — reboot required for changes to apply."),
+            tr("Failed to set GPU mode"),
             handle.clone(),
             result,
         );
@@ -171,10 +171,8 @@ fn set_apu_mem(proxy: AsusArmouryProxy<'static>, handle: Weak<MainWindow>, value
     tokio::spawn(async move {
         let result = p.set_current_value(value).await;
         show_toast(
-            SharedString::from(
-                "Reserved GPU memory updated — reboot required for changes to apply.",
-            ),
-            SharedString::from("Failed to set reserved GPU memory"),
+            tr("Reserved GPU memory updated — reboot required for changes to apply."),
+            tr("Failed to set reserved GPU memory"),
             w.clone(),
             result,
         );
@@ -321,8 +319,8 @@ pub fn setup_gpu_page(ui: &MainWindow) {
                         tokio::spawn(async move {
                             let res = p.set_xgm_led_enabled(checked).await;
                             show_toast(
-                                SharedString::from("XG Mobile LED updated"),
-                                SharedString::from("Failed to set XG Mobile LED"),
+                                tr("XG Mobile LED updated"),
+                                tr("Failed to set XG Mobile LED"),
                                 w,
                                 res,
                             );
@@ -389,10 +387,8 @@ pub fn setup_gpu_page(ui: &MainWindow) {
                         tokio::spawn(async move {
                             let res = p.set_disable_nvidia_powerd_on_battery(value).await;
                             show_toast(
-                                SharedString::from("Updated nvidia-powerd on-battery setting"),
-                                SharedString::from(
-                                    "Failed to update nvidia-powerd on-battery setting",
-                                ),
+                                tr("Updated nvidia-powerd on-battery setting"),
+                                tr("Failed to update nvidia-powerd on-battery setting"),
                                 w,
                                 res,
                             );

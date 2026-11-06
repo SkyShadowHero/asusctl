@@ -9,8 +9,9 @@ use rog_platform::asus_armoury::FirmwareAttribute;
 use rog_platform::platform::Properties;
 use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
 
-use super::show_toast;
+use super::{show_toast, tr};
 use crate::config::Config;
+use crate::tr_toast;
 use crate::zbus_proxies::{AppState, find_iface_async};
 use crate::{AttrMinMax, MainWindow, SystemPageData, set_ui_callbacks};
 
@@ -261,8 +262,8 @@ macro_rules! setup_callback {
                     let proxy_copy = proxy_copy.clone();
                     tokio::spawn(async move {
                         show_toast(
-                            format!("{} successfully set to {}", stringify!($property), v).into(),
-                            format!("Setting {} failed", stringify!($property)).into(),
+                            tr_toast!("{} successfully set to {}", stringify!($property), v).into(),
+                            tr_toast!("Setting {} failed", stringify!($property)).into(),
                             handle_copy,
                             proxy_copy.set_current_value(v).await,
                         );
@@ -564,8 +565,8 @@ pub fn setup_system_page_callbacks(ui: &MainWindow, _states: Arc<Mutex<Config>>)
                         let handle_copy = handle_copy.clone();
                         tokio::spawn(async move {
                             show_toast(
-                                format!("Throttle policy set to {}", value).into(),
-                                "Setting Throttle policy failed".into(),
+                                tr_toast!("Throttle policy set to {}", value).into(),
+                                tr("Setting Throttle policy failed"),
                                 handle_copy,
                                 proxy_copy.set_platform_profile(value.into()).await,
                             );

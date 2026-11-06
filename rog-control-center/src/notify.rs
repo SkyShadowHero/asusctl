@@ -20,6 +20,7 @@ use tokio::task::JoinHandle;
 
 use crate::config::Config;
 use crate::error::Result;
+use crate::ui::tr;
 
 const NOTIF_HEADER: &str = "ROG Control";
 
@@ -205,9 +206,27 @@ pub fn start_notifications(
     Ok(vec![blocking])
 }
 
-fn base_notification<T>(message: &str, data: &T) -> Notification
+/// User-facing label for a dGPU state.
+///
+/// `GfxPower`'s own `Display` returns the D-Bus enum spellings
+/// ("dgpu_disabled", "asus_mux_discreet", ...), which are not meant for end
+/// users. They are also too generic as gettext msgids, so each state gets a
+/// short, translatable phrase instead.
+fn gpu_status_label(status: &GfxPower) -> String {
+    tr(match status {
+        GfxPower::Active => "active",
+        GfxPower::Suspended => "suspended",
+        GfxPower::AsusDisabled => "disabled",
+        GfxPower::AsusMuxDiscreet => "mux discreet",
+        GfxPower::Unknown => "integrated only",
+    })
+    .to_string()
+}
+
+fn base_notification<M, D>(message: &M, data: &D) -> Notification
 where
-    T: Display,
+    M: Display,
+    D: Display,
 {
     let mut notif = Notification::new();
     notif
@@ -219,7 +238,8 @@ where
 }
 
 fn do_gpu_status_notif(message: &str, data: &GfxPower) -> Notification {
-    let mut notif = base_notification(message, &<&str>::from(data).to_owned());
+    let message = tr(message);
+    let mut notif = base_notification(&message, &gpu_status_label(data));
     let icon = match data {
         GfxPower::Suspended => "asus_notif_blue",
         GfxPower::AsusDisabled => "asus_notif_white",

@@ -174,19 +174,28 @@ fn main() -> Result<()> {
     let (gpu_status_tx, gpu_status_rx) =
         tokio::sync::watch::channel(rog_platform::gpu_pci::get_gpu_power_status());
 
+    // Initialise gettext before anything can emit a user-visible string: the
+    // dGPU monitor started by `start_notifications` raises desktop
+    // notifications from its own thread.
+    //
+    // Prefer the catalogs compiled by build.rs -- they are always in sync with
+    // the .po sources when running from the source tree. Packaged builds use
+    // the copies under /usr/share/locale instead.
+    let local_translations = env!("ROGCC_TRANSLATIONS_DIR");
+    if std::env::var("RUST_TRANSLATIONS").is_ok()
+        || std::path::Path::new(local_translations).exists()
+    {
+        log::debug!("---- Using local-dir translations");
+        slint::init_translations!(local_translations);
+    } else {
+        log::debug!("Using system installed translations");
+        slint::init_translations!("/usr/share/locale/");
+    }
+
     start_notifications(config.clone(), &rt, gpu_status_tx)?;
 
     if !startup_in_background && let Ok(mut app_state) = app_state.lock() {
         *app_state = AppState::MainWindowShouldOpen;
-    }
-
-    if std::env::var("RUST_TRANSLATIONS").is_ok() {
-        // don't care about content
-        log::debug!("---- Using local-dir translations");
-        slint::init_translations!(env!("ROGCC_TRANSLATIONS_DIR"));
-    } else {
-        log::debug!("Using system installed translations");
-        slint::init_translations!("/usr/share/locale/");
     }
 
     // Prefetch supported Aura modes once at startup and move into the

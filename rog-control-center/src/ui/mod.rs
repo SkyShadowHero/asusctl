@@ -43,8 +43,8 @@ macro_rules! set_ui_callbacks {
             tokio::spawn(async move {
                 concat_idents::concat_idents!(set = set_, $proxy_fn {
                 show_toast(
-                    format!($success, value).into(),
-                    $failed.into(),
+                    $crate::tr_toast!($success, value).into(),
+                    $crate::ui::tr($failed),
                     handle_copy,
                     proxy_copy.set(value $($conv2)*).await,
                 );
@@ -71,6 +71,42 @@ macro_rules! set_ui_callbacks {
         });
         });
     };
+}
+
+/// gettext domain used by `slint::init_translations!` -- the macro passes
+/// `CARGO_PKG_NAME`, so Rust-side lookups resolve against the same `.mo`
+/// catalogs as `@tr` in the .slint markup.
+pub const GETTEXT_DOMAIN: &str = "rog-control-center";
+
+/// Translate a user-facing Rust string through gettext.
+///
+/// Toast / InfoBar messages are built in Rust rather than in .slint markup and
+/// therefore cannot use `@tr`. The English source text stays the msgid in the
+/// .po catalogs; only the catalog provides the translation.
+pub fn tr(message: &str) -> SharedString {
+    SharedString::from(gettextrs::dgettext(GETTEXT_DOMAIN, message))
+}
+
+/// `tr` for templates containing `{}` placeholders.
+///
+/// gettext must see the untranslated template (that is the msgid), so the
+/// lookup happens *before* the placeholders are filled -- formatting first
+/// would produce an untranslatable, value-specific msgid.
+///
+/// Returns `String` so existing `format!(...).into()` call sites only need
+/// the macro name changed.
+#[macro_export]
+macro_rules! tr_toast {
+    ($template:expr $(, $arg:expr)*) => {{
+        #[allow(unused_mut)]
+        let mut text: String = gettextrs::dgettext($crate::ui::GETTEXT_DOMAIN, $template);
+        $(
+            if let Some(pos) = text.find("{}") {
+                text.replace_range(pos..pos + 2, &format!("{}", $arg));
+            }
+        )*
+        text
+    }};
 }
 
 pub fn show_toast(
@@ -139,6 +175,9 @@ pub fn setup_window(
         .map_err(|e| warn!("Couldn't set application ID: {e:?}"))
         .ok();
     let ui = MainWindow::new().expect("Couldn't create main window");
+    // Theme intentionally follows the OS colour scheme (FluentTheme.dark reads
+    // Palette.color-scheme). Do not wire Config.dark_mode here: it defaults to
+    // true and would force light-theme users into dark mode.
     // propagate TUF flag to the UI so the sidebar can swap logo branding
     ui.set_is_tuf(is_tuf);
     if let Err(e) = ui.window().show() {

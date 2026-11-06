@@ -1181,7 +1181,7 @@ msgstr "系统设置"
 #: rog-control-center/ui/main_window.slint:81
 msgctxt "Menu2"
 msgid "Keyboard Aura"
-msgstr "Aura 键盘灯效"
+msgstr "键盘灯效"
 
 #: rog-control-center/ui/main_window.slint:82
 msgctxt "Menu3"
@@ -1194,7 +1194,6 @@ msgid "Slash Lighting"
 msgstr "Slash 灯带"
 
 #: rog-control-center/ui/main_window.slint:84
-#, fuzzy
 msgctxt "Menu5"
 msgid "Fan Curves"
 msgstr "风扇曲线"
@@ -1210,13 +1209,11 @@ msgid "Battery Info"
 msgstr "电池信息"
 
 #: rog-control-center/ui/main_window.slint:87
-#, fuzzy
 msgctxt "Menu7"
 msgid "App Settings"
 msgstr "应用设置"
 
 #: rog-control-center/ui/main_window.slint:88
-#, fuzzy
 msgctxt "Menu8"
 msgid "About"
 msgstr "关于"
@@ -1259,3 +1256,236 @@ msgstr "退出"
 #~ msgctxt "MainWindow"
 #~ msgid "ROG"
 #~ msgstr "ROG"
+
+
+msgid "Anime builtin animations changed"
+msgstr "AniMe 内置动画已更改"
+
+msgid "Failed to set Anime builtin animations"
+msgstr "设置 AniMe 内置动画失败"
+
+msgid "Anime LED brightness successfully set to {}"
+msgstr "AniMe 亮度已设为 {}"
+
+msgid "Setting Anime LED brightness failed"
+msgstr "设置 AniMe 亮度失败"
+
+msgid "Keyboard LED mode successfully set to {}"
+msgstr "键盘灯效模式已设为 {}"
+
+msgid "Setting keyboard LEDmode failed"
+msgstr "设置键盘灯效模式失败"
+
+msgid "Anime display successfully set to {}"
+msgstr "AniMe 显示已设为 {}"
+
+msgid "Setting Anime display failed"
+msgstr "设置 AniMe 显示失败"
+
+msgid "Anime off_when_lid_closed successfully set to {}"
+msgstr "合盖时关闭 AniMe 已设为 {}"
+
+msgid "Setting Anime off_when_lid_closed failed"
+msgstr "设置合盖时关闭 AniMe 失败"
+
+msgid "Anime off_when_suspended successfully set to {}"
+msgstr "休眠时关闭 AniMe 已设为 {}"
+
+msgid "Setting Anime off_when_suspended failed"
+msgstr "设置休眠时关闭 AniMe 失败"
+
+msgid "Anime off_when_unplugged successfully set to {}"
+msgstr "拔掉电源时关闭 AniMe 已设为 {}"
+
+msgid "Setting Anime off_when_unplugged failed"
+msgstr "设置拔掉电源时关闭 AniMe 失败"
+
+msgid "Brightness set to {}"
+msgstr "亮度已设为 {}"
+
+msgid "Brightness failed"
+msgstr "设置亮度失败"
+
+msgid "LED mode applied"
+msgstr "灯效模式已应用"
+
+msgid "LED mode failed"
+msgstr "设置灯效模式失败"
+
+msgid "Aura power updated"
+msgstr "Aura 灯效电源设置已更新"
+
+msgid "Aura power failed"
+msgstr "设置 Aura 灯效电源失败"
+
+msgid "Slash animation successfully set to {}"
+msgstr "Slash 灯效动画已设为 {}"
+
+msgid "Setting Slash animation failed"
+msgstr "设置 Slash 灯效动画失败"
+
+msgid "Slash lighting successfully set to {}"
+msgstr "Slash 灯带已设为 {}"
+
+msgid "Setting Slash lighting failed"
+msgstr "设置 Slash 灯带失败"
+
+msgid "Slash brightness successfully set to {}"
+msgstr "Slash 亮度已设为 {}"
+
+msgid "Setting Slash brightness failed"
+msgstr "设置 Slash 亮度失败"
+
+msgid "Slash interval successfully set to {}"
+msgstr "Slash 动画间隔已设为 {}"
+
+msgid "Setting Slash interval failed"
+msgstr "设置 Slash 动画间隔失败"
+
+msgid "Slash boot animation visibility successfully set to {}"
+msgstr "开机动画显示状态已设为 {}"
+
+msgid "Setting Slash boot animation visibility failed"
+msgstr "设置开机动画显示状态失败"
+
+msgid "Slash shutdown animation visibility successfully set to {}"
+msgstr "关机动画显示状态已设为 {}"
+
+msgid "Setting Slash shutdown animation visibility failed"
+msgstr "设置关机动画显示状态失败"
+
+msgid "Slash sleep animation visibility successfully set to {}"
+msgstr "睡眠动画显示状态已设为 {}"
+
+msgid "Setting Slash sleep animation visibility failed"
+msgstr "设置睡眠动画显示状态失败"
+
+msgid "Slash battery animation visibility successfully set to {}"
+msgstr "电池模式动画显示状态已设为 {}"
+
+msgid "Setting Slash battery animation visibility failed"
+msgstr "设置电池模式动画显示状态失败"
+
+msgid "Slash battery warning successfully set to {}"
+msgstr "低电量警告已设为 {}"
+
+msgid "Setting Slash battery warning failed"
+msgstr "设置低电量警告失败"
+
+msgid "Slash lid-closed animation visibility successfully set to {}"
+msgstr "合盖动画显示状态已设为 {}"
+
+msgid "Setting Slash lid-closed animation visibility failed"
+msgstr "设置合盖动画显示状态失败"
+
+msgid "GPU mode change scheduled — reboot required for changes to apply."
+msgstr "已安排切换 GPU 模式，重启后生效。"
+
+msgid "Failed to set GPU mode"
+msgstr "设置 GPU 模式失败"
+
+msgid "Reserved GPU memory updated — reboot required for changes to apply."
+msgstr "保留显存已更新，重启后生效。"
+
+msgid "Failed to set reserved GPU memory"
+msgstr "设置保留显存失败"
+
+msgid "XG Mobile LED updated"
+msgstr "XG Mobile 指示灯已更新"
+
+msgid "Failed to set XG Mobile LED"
+msgstr "设置 XG Mobile 指示灯失败"
+
+msgid "Updated nvidia-powerd on-battery setting"
+msgstr "已更新 nvidia-powerd 电池模式设置"
+
+msgid "Failed to update nvidia-powerd on-battery setting"
+msgstr "更新 nvidia-powerd 电池模式设置失败"
+
+msgid "{} successfully set to {}"
+msgstr "{} 已设为 {}"
+
+msgid "Setting {} failed"
+msgstr "设置 {} 失败"
+
+msgid "Throttle policy set to {}"
+msgstr "性能策略已设为 {}"
+
+msgid "Setting Throttle policy failed"
+msgstr "设置性能策略失败"
+
+msgid "Applied PPT group settings {}"
+msgstr "已应用 PPT 组设置 {}"
+
+msgid "Setting PPT group settings failed"
+msgstr "设置 PPT 组设置失败"
+
+msgid "Charge limit successfully set to {}"
+msgstr "充电上限已设为 {}"
+
+msgid "Setting Charge limit failed"
+msgstr "设置充电上限失败"
+
+msgid "Throttle policy EPP set to {}"
+msgstr "性能策略 EPP 已设为 {}"
+
+msgid "Setting Throttle policy EPP failed"
+msgstr "设置性能策略 EPP 失败"
+
+msgid "Throttle policy linked to EPP: {}"
+msgstr "性能策略已与 EPP 联动：{}"
+
+msgid "Setting Throttle policy linked to EPP failed"
+msgstr "设置性能策略与 EPP 联动失败"
+
+msgid "Throttle policy on AC set to {}"
+msgstr "接通电源时的性能策略已设为 {}"
+
+msgid "Throttle policy on battery set to {}"
+msgstr "使用电池时的性能策略已设为 {}"
+
+msgid "Throttle policy on AC enabled: {}"
+msgstr "接通电源时的性能策略启用状态：{}"
+
+msgid "Throttle policy on battery enabled: {}"
+msgstr "使用电池时的性能策略启用状态：{}"
+
+msgid "Setting Throttle policy on AC failed"
+msgstr "设置接通电源时的性能策略失败"
+
+msgid "Setting Throttle policy on battery failed"
+msgstr "设置使用电池时的性能策略失败"
+
+msgid "Screenpad successfully set to {}"
+msgstr "副屏已设为 {}"
+
+msgid "Setting screenpad brightness failed"
+msgstr "设置副屏亮度失败"
+
+msgid "dGPU status changed:"
+msgstr "独立显卡状态已变化："
+
+msgid "active"
+msgstr "已启用"
+
+msgid "suspended"
+msgstr "已挂起"
+
+msgid "disabled"
+msgstr "已禁用"
+
+msgid "mux discreet"
+msgstr "独显直连"
+
+msgid "integrated only"
+msgstr "仅集成显卡"
+
+#: rog-control-center/ui/main_window.slint
+msgctxt "MainWindow"
+msgid "Click here to exit"
+msgstr "点击此处退出"
+
+#: rog-control-center/ui/main_window.slint
+msgctxt "MainWindow"
+msgid "I show when something is waiting"
+msgstr "有操作正在等待处理"

@@ -8,7 +8,8 @@ use rog_slash::SlashMode;
 use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel};
 
 use crate::config::Config;
-use crate::ui::show_toast;
+use crate::tr_toast;
+use crate::ui::{show_toast, tr};
 use crate::{MainWindow, SlashPageData, set_ui_callbacks, set_ui_props_async};
 
 fn slash_modes() -> Vec<SharedString> {
@@ -106,12 +107,12 @@ pub fn setup_slash_page(ui: &MainWindow, _states: Arc<Mutex<Config>>) {
                         let slash_copy = slash_copy.clone();
                         tokio::spawn(async move {
                             show_toast(
-                                format!(
+                                tr_toast!(
                                     "Slash animation successfully set to {}",
                                     slash_mode_from_index(index)
                                 )
                                 .into(),
-                                "Setting Slash animation failed".into(),
+                                tr("Setting Slash animation failed"),
                                 handle_copy,
                                 slash_copy
                                     .set_mode(slash_mode_from_index(index) as u8)

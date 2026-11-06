@@ -46,6 +46,10 @@ futures-util.workspace = true
 thiserror.workspace = true
 
 slint.workspace = true
+# Same gettext implementation Slint's `gettext` feature uses, so Rust-side
+# user-facing strings share the .mo catalogs loaded by
+# `slint::init_translations!` (domain = crate name).
+gettext-rs = "0.7.7"
 
 [build-dependencies]
 slint-build.workspace = true
