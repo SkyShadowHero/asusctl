@@ -74,45 +74,77 @@ export component FluentCaption inherits Text {
 // The 3px accent pill on the left edge of the selected NavigationView item.
 //
 // There is exactly ONE of these per sidebar, owned by SideBar itself. The
-// parent binds `y` to the selected row's centre, so a selection change slides
-// the same pill to its new position (WinUI NavigationView behaviour) instead
-// of fading one pill out and fading another one in.
+// parent binds `pill-center` to the selected row's centre, so a selection
+// change slides the same pill to its new position (WinUI NavigationView
+// behaviour) instead of fading one pill out and fading another one in.
+//
+// Motion model -- Compose-style shared-element STRETCH (the same effect the
+// Plasma launcher sidebar pill uses):
+//   * The pill is described by TWO independent edges, `front-y` (the edge
+//     LEADING the motion) and `back-y` (the TRAILING edge).
+//   * The leading edge reaches the destination first and at normal speed.
+//   * The trailing edge follows more slowly, so it visibly chases the front.
+//   Because the trailing edge lags behind the leading one, the pill looks
+//   LONGER while travelling -- it morphs from row to row rather than sliding
+//   as a rigid bar or collapsing to a dot. When settled the two edges are the
+//   normal ends of the pill, so there is never a "vanish and reappear" feel.
 export component FluentNavIndicator inherits Rectangle {
     in property <length> pill-height: FluentTheme.size-indicator-height;
+    in property <length> pill-center: 0px;
+    in property <bool> ready: true;
     in property <bool> active: true;
 
-    // This outer element is a zero-height ANCHOR: its y is the CENTRE of the
-    // selected row, not the top of the pill. Keeping the pill in a child lets
-    // it grow symmetrically up and down while the anchor travels.
+    // Full-height transparent overlay anchored to the sidebar's top edge, so
+    // the pill child can sit at any absolute y inside it.
     width: FluentTheme.size-indicator-width;
-    height: 0px;
-    opacity: root.active ? 1 : 0;
+    height: 100%;
+    background: transparent;
 
-    // WinUI PointToPointEasing = cubic-bezier(0.55, 0.55, 0, 1), documented as
-    // "transitions that keep the same element on screen going from one place
-    // to another". 250ms sits between Slint's 150ms control feedback and
-    // WinUI's 333ms content transitions, matching FluentTheme.duration-slow.
-    animate y { duration: 250ms; easing: cubic-bezier(0.55, 0.55, 0, 1); }
+    // Fade in only once positioned (SideBar's indicator-ready guard), so a
+    // stale / off-screen position is never seen.
+    opacity: root.active ? 1 : 0;
     animate opacity { duration: 150ms; }
 
-    // NOTE: inside a component, `self` refers to the component ROOT (whose
-    // height is 0 here), not to this child. Use the explicit `root.pill-height`
-    // instead -- `self.height` would fold to the constant 0 and be optimised
-    // away, leaving the pill top-aligned (growing downward only).
+    in-out property <length> front-y: root.pill-center - root.pill-height / 2;
+    in-out property <length> back-y: root.pill-center + root.pill-height / 2;
+    in-out property <length> last-center: root.pill-center;
+
+    changed pill-center => {
+        if (!root.ready) {
+            // First placement while the layout is still settling: snap both
+            // edges into place with no stretch.
+            root.front-y = root.pill-center - root.pill-height / 2;
+            root.back-y = root.pill-center + root.pill-height / 2;
+        } else if (root.pill-center > root.last-center) {
+            // Travelling DOWN: the bottom edge leads, the top edge trails.
+            root.front-y = root.pill-center + root.pill-height / 2;
+            root.back-y = root.pill-center - root.pill-height / 2;
+        } else if (root.pill-center < root.last-center) {
+            // Travelling UP: the top edge leads, the bottom edge trails.
+            root.front-y = root.pill-center - root.pill-height / 2;
+            root.back-y = root.pill-center + root.pill-height / 2;
+        } else {
+            root.front-y = root.pill-center - root.pill-height / 2;
+            root.back-y = root.pill-center + root.pill-height / 2;
+        }
+        root.last-center = root.pill-center;
+    }
+
+    // WinUI PointToPointEasing = cubic-bezier(0.55, 0.55, 0, 1) for the lead
+    // edge; the trailing edge eases in a little slower so it visibly catches
+    // up -- that lag is what reads as "the back is chasing the front".
+    animate front-y { duration: 250ms; easing: cubic-bezier(0.55, 0.55, 0, 1); }
+    animate back-y { duration: 360ms; easing: ease-in-out; }
+
+    // Draw between the two edges; order-independent so direction flips never
+    // matter.
     Rectangle {
         x: 0px;
-        // Negative half-height keeps the pill centred on the anchor for ANY
-        // height, so contracting / expanding happens on BOTH ends at once.
-        y: -root.pill-height / 2;
+        y: Math.min(root.front-y, root.back-y);
         width: FluentTheme.size-indicator-width;
-        height: root.pill-height;
+        height: Math.max(root.front-y, root.back-y) - Math.min(root.front-y, root.back-y);
         border-radius: FluentTheme.size-indicator-width / 2;
         background: FluentTheme.accent-default;
-
-        // y and height MUST share the same spec: their animated values stay
-        // in lockstep, so the pill's centre never drifts during the unfold.
-        animate y { duration: 150ms; easing: ease-out; }
-        animate height { duration: 150ms; easing: ease-out; }
     }
 }
 

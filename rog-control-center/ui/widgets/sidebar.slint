@@ -123,16 +123,13 @@ export component SideBar inherits Rectangle {
 
     // Shared travelling indicator. `indicator-center` is the CENTRE of the
     // selected row (not the pill's top edge), written by whichever row is
-    // selected. FluentNavIndicator anchors itself on this value so the pill
-    // expands symmetrically up and down.
+    // selected. FluentNavIndicator binds on this value and morphs to it with a
+    // Compose-style stretch (leading edge fast, trailing edge slow), so the
+    // pill reads as one element flowing from row to row.
     // The initial binding points at the first row so the pill is already in
     // place before the first layout pass -- no drop-in from y = 0.
     in-out property <length> indicator-center: navigation.y
         + (FluentTheme.size-control-height + 8px) / 2;
-    in-out property <length> indicator-height: FluentTheme.size-indicator-height;
-    // Manual vertical calibration. Set this if the pill ever needs nudging
-    // relative to a row (e.g. after adding a title bar above the sidebar).
-    in-out property <length> indicator-offset: 0px;
     in-out property <bool> indicator-ready: false;
     in-out property <int> layout-sync: 0;
     out property <bool> indicator-active: root.current-item >= 0
@@ -150,25 +147,6 @@ export component SideBar inherits Rectangle {
             root.layout-sync += 1;
             self.running = false;
         }
-    }
-
-    // On a selection change the pill only shortens a little, slides to the new
-    // row's centre, then grows back symmetrically in BOTH directions. It never
-    // collapses to a dot -- the motion must read as one element moving, not as
-    // an element vanishing and a new one appearing. The expand timer fires
-    // near the end of the 250ms travel so the two phases read as one motion.
-    expand := Timer {
-        interval: 200ms;
-        running: false;
-        triggered => {
-            root.indicator-height = FluentTheme.size-indicator-height;
-            self.running = false;
-        }
-    }
-
-    changed current-item => {
-        root.indicator-height = FluentTheme.size-indicator-compact;
-        expand.running = true;
     }
 
     width: FluentTheme.size-sidebar-width;
@@ -280,8 +258,9 @@ export component SideBar inherits Rectangle {
     // WinUI draws its selection indicator on the leading edge.
     FluentNavIndicator {
         x: FluentTheme.space-item;
-        y: root.indicator-center + root.indicator-offset;
-        pill-height: root.indicator-height;
+        pill-center: root.indicator-center;
+        pill-height: FluentTheme.size-indicator-height;
+        ready: root.indicator-ready;
         active: root.indicator-active && root.indicator-ready;
     }
 }
